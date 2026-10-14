@@ -1,0 +1,369 @@
+/* ---------- brand ---------- */
+:root {
+  --vp-c-brand-1: #2f5bd3;
+  --vp-c-brand-2: #4870e0;
+  --vp-c-brand-3: #2f5bd3;
+  --vp-c-brand-soft: rgba(47, 91, 211, 0.12);
+  --ck-out-bg: #f6f7f9;
+  --ck-out-fg: #1f2328;
+  --ck-note-bg: #fff8e6;
+  --ck-note-border: #e8b931;
+}
+.dark {
+  --vp-c-brand-1: #7d9cf0;
+  --vp-c-brand-2: #6687e8;
+  --vp-c-brand-3: #4870e0;
+  --vp-c-brand-soft: rgba(125, 156, 240, 0.16);
+  --ck-out-bg: #15171b;
+  --ck-out-fg: #d6dae0;
+  --ck-note-bg: #2b2616;
+  --ck-note-border: #b38b1d;
+}
+
+/* ---------- lecture header ---------- */
+.lecture-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 24px;
+}
+.lecture-meta span {
+  font-size: 13px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--vp-c-default-soft);
+  color: var(--vp-c-text-2);
+}
+
+/* ---------- runnable code ---------- */
+.run-code {
+  margin: 16px 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.run-code .run-code-view div[class*='language-'] {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+.run-code-plain,
+.run-code-editor {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 20px 24px;
+  background: var(--vp-code-block-bg);
+  color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: var(--vp-code-font-size);
+  line-height: var(--vp-code-line-height);
+  white-space: pre;
+  overflow-x: auto;
+  border: 0;
+  outline: none;
+  resize: vertical;
+  tab-size: 4;
+}
+.run-code-editor {
+  box-shadow: inset 3px 0 0 var(--vp-c-brand-1);
+}
+.run-code-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+}
+.run-code-bar button {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg);
+  color: var(--vp-c-text-1);
+}
+.run-code-bar button:hover {
+  border-color: var(--vp-c-brand-1);
+}
+.run-code-bar button.run {
+  background: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
+  color: #fff;
+}
+.dark .run-code-bar button.run {
+  color: #10131a;
+}
+.run-code-bar .hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--vp-c-text-3);
+}
+.run-code-output {
+  padding: 10px 16px;
+  border-top: 1px dashed var(--vp-c-divider);
+  background: var(--ck-out-bg);
+  color: var(--ck-out-fg);
+  font-family: var(--vp-font-family-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.run-code-output::before {
+  content: 'Output';
+  display: block;
+  font-family: var(--vp-font-family-base);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3);
+  margin-bottom: 4px;
+}
+.run-code-output .error { color: var(--vp-c-danger-1); }
+.run-code-output .warn { color: var(--vp-c-warning-1); }
+.run-code-output .empty { color: var(--vp-c-text-3); }
+
+/* ---------- trainer notes ---------- */
+.trainer-note {
+  display: none;
+  margin: 16px 0;
+  padding: 10px 16px;
+  border-left: 4px solid var(--ck-note-border);
+  border-radius: 6px;
+  background: var(--ck-note-bg);
+  font-size: 14px;
+}
+html.trainer .trainer-note { display: block; }
+.trainer-note-title {
+  margin: 0 0 4px !important;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ck-note-border);
+}
+
+/* ---------- mode toggles in the nav bar ---------- */
+.mode-toggles {
+  display: flex;
+  gap: 6px;
+  margin-left: 12px;
+}
+.mode-toggles button {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+}
+.mode-toggles button.on {
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+@media (max-width: 767px) {
+  .mode-toggles { display: none; }
+}
+
+/* ---------- presentation mode: big text, no side panels ---------- */
+@media (min-width: 960px) {
+  html.present .VPSidebar,
+  html.present .VPDoc .aside,
+  html.present .VPLocalNav { display: none !important; }
+  html.present .VPContent.has-sidebar { padding-left: 0 !important; }
+  html.present .VPNavBar .curtain { display: none !important; }
+  html.present .VPNavBar { background-color: var(--vp-c-bg) !important; }
+  html.present .VPNavBarTitle.has-sidebar .title { border-bottom-color: transparent !important; }
+  html.present .VPNavBar.has-sidebar .divider { padding-left: 0 !important; }
+  html.present .VPDoc .container,
+  html.present .VPDoc .content,
+  html.present .VPDoc .content-container { max-width: 1100px !important; margin: 0 auto; }
+  html.present .VPDoc.has-sidebar .content { padding-left: 32px !important; padding-right: 32px !important; }
+  html.present .vp-doc { font-size: 22px; line-height: 1.6; }
+  html.present .vp-doc h1 { font-size: 44px; line-height: 1.2; }
+  html.present .vp-doc h2 { font-size: 32px; margin-top: 64px; }
+  html.present .vp-doc h3 { font-size: 26px; }
+  html.present .vp-doc p,
+  html.present .vp-doc li { line-height: 1.6; }
+  html.present .vp-doc div[class*='language-'] code,
+  html.present .run-code-plain,
+  html.present .run-code-editor { font-size: 19px; line-height: 1.55; }
+  html.present .run-code-output { font-size: 18px; }
+  html.present .vp-doc table { font-size: 19px; }
+  html.present .vp-doc :not(pre) > code { font-size: 0.9em; }
+}
+
+/* ---------- sessions table on the home page ---------- */
+.status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.status.done { background: var(--vp-c-default-soft); color: var(--vp-c-text-2); }
+.status.next { background: var(--vp-c-brand-soft); color: var(--vp-c-brand-1); }
+.status.planned { color: var(--vp-c-text-3); }
+
+/* ---------- resizable navigation and "In this lecture" column ---------- */
+:root {
+  --ck-aside-width: 256px;
+  /* no centred 1440px frame: the navigation is exactly as wide as you drag it */
+  --vp-layout-max-width: 100vw;
+}
+.VPSidebar,
+.VPDoc .aside {
+  overflow-x: hidden;
+}
+@media (min-width: 960px) {
+  /* less padding when the navigation is dragged very narrow */
+  .VPSidebar {
+    padding-left: min(32px, calc(var(--vp-sidebar-width) / 6)) !important;
+    padding-right: min(32px, calc(var(--vp-sidebar-width) / 6)) !important;
+  }
+  /* the site title above the navigation is cut, not drawn over the search box */
+  .VPNavBar.has-sidebar .title {
+    overflow: hidden;
+    padding-left: min(32px, calc(var(--vp-sidebar-width) / 6)) !important;
+    padding-right: 8px !important;
+  }
+  .VPNavBarTitle .title {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+.ck-resize-handle:focus {
+  outline: none;
+}
+.ck-resize-handle:focus-visible::after {
+  background: var(--vp-c-brand-1);
+}
+.VPDoc .aside {
+  max-width: var(--ck-aside-width) !important;
+}
+.VPDoc .aside-container,
+.VPDoc .aside-curtain {
+  width: max(0px, calc(var(--ck-aside-width) - 32px)) !important;
+}
+.ck-resize-handle {
+  position: fixed;
+  bottom: 0;
+  z-index: 40;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+.ck-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+  background: transparent;
+  transition: background-color 0.15s;
+}
+.ck-resize-handle:hover::after,
+.ck-resize-handle.active::after {
+  background: var(--vp-c-brand-1);
+}
+html.ck-resizing,
+html.ck-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* a hidden panel leaves a small tab at the edge of the window */
+.ck-resize-handle.collapsed {
+  width: 10px;
+}
+.ck-resize-handle.collapsed::after {
+  background: var(--vp-c-divider);
+}
+.ck-tab {
+  position: absolute;
+  top: 24px;
+  width: 22px;
+  height: 44px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+  cursor: pointer;
+}
+.ck-resize-handle.sidebar .ck-tab {
+  left: 0;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+}
+.ck-resize-handle.aside .ck-tab {
+  right: 0;
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+}
+.ck-tab::before {
+  content: '';
+  position: absolute;
+  top: 17px;
+  width: 7px;
+  height: 7px;
+  border-top: 2px solid var(--vp-c-text-2);
+  border-right: 2px solid var(--vp-c-text-2);
+}
+.ck-resize-handle.sidebar .ck-tab::before {
+  left: 5px;
+  transform: rotate(45deg);
+}
+.ck-resize-handle.aside .ck-tab::before {
+  left: 9px;
+  transform: rotate(-135deg);
+}
+.ck-tab:hover {
+  border-color: var(--vp-c-brand-1);
+}
+
+/* hidden panels */
+@media (min-width: 960px) {
+  html.ck-hide-sidebar .VPSidebar { display: none !important; }
+  html.ck-hide-sidebar .VPContent.has-sidebar { padding-left: 0 !important; }
+  html.ck-hide-sidebar .VPLocalNav.has-sidebar { padding-left: 0 !important; }
+  html.ck-hide-sidebar .VPNavBar { background-color: var(--vp-c-bg) !important; }
+  html.ck-hide-sidebar .VPNavBar .curtain { display: none !important; }
+  html.ck-hide-sidebar .VPNavBarTitle.has-sidebar .title { border-bottom-color: transparent !important; }
+  html.ck-hide-sidebar .VPNavBar.has-sidebar .divider { padding-left: 0 !important; }
+}
+@media (min-width: 1280px) {
+  html.ck-hide-aside .VPDoc .aside { display: none !important; }
+}
+
+/* wide screens: no centred max-width layout, so the panels sit at the window edges
+   and the resize handles move the text with them */
+@media (min-width: 1440px) {
+  .VPSidebar {
+    padding-left: 32px;
+    width: var(--vp-sidebar-width);
+  }
+  .VPNavBar.has-sidebar .title {
+    padding-left: 32px;
+    width: var(--vp-sidebar-width);
+  }
+  .VPNavBar .container { max-width: none; }
+  .VPNavBar.has-sidebar .content {
+    padding-right: 32px;
+    padding-left: var(--vp-sidebar-width);
+  }
+  .VPNavBar.has-sidebar .divider { padding-left: var(--vp-sidebar-width); }
+  .VPContent.has-sidebar {
+    padding-right: 0;
+    padding-left: var(--vp-sidebar-width);
+  }
+  .VPLocalNav.has-sidebar { padding-left: var(--vp-sidebar-width); }
+  html.ck-hide-sidebar .VPContent.has-sidebar,
+  html.ck-hide-sidebar .VPLocalNav.has-sidebar,
+  html.ck-hide-sidebar .VPNavBar.has-sidebar .divider { padding-left: 0 !important; }
+  html.present .VPContent.has-sidebar { padding-left: 0 !important; }
+}
