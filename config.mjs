@@ -24,7 +24,7 @@ function runnableCode(md) {
 
 // ::: trainer  -> notes for the trainer. Rendered ONLY when TRAINER=1;
 // otherwise nothing is emitted (the content is dropped, so public builds never contain it).
-function trainerNotes(md, enabled, root) {
+function trainerNotes(md, enabled, notesDir) {
   md.use(container, 'trainer', {
     render(tokens, idx) {
       if (!enabled) return ''
@@ -33,7 +33,7 @@ function trainerNotes(md, enabled, root) {
         : '</div>\n'
     }
   })
-  if (enabled) { injectTrainerNotes(md, root); return }
+  if (enabled) { injectTrainerNotes(md, notesDir); return }
   // Drop the inner tokens of trainer blocks so their text is not rendered either.
   md.core.ruler.push('trainer_strip', state => {
     const out = []
@@ -49,7 +49,8 @@ function trainerNotes(md, enabled, root) {
 
 // ---- trainer notes re-injection -------------------------------------------
 // With TRAINER=1, page lectures/NN-topic.md gets the sections of
-// <course root>/trainer/notes/NN-topic.md injected inside `.trainer-note` boxes.
+// <trainerDir>/notes/NN-topic.md injected inside `.trainer-note` boxes
+// (trainerDir: option of defineCourse, default <course root>/trainer).
 // Notes file format: blocks introduced by a marker comment on its own line:
 //   <!-- after: Exact heading text -->   insert just before the next heading of the
 //                                        same or higher level (end of that section)
@@ -60,9 +61,9 @@ function trainerNotes(md, enabled, root) {
 // (unknown heading -> end of page, with a warning).
 const MARKER = /^<!--\s*(after|before)\s*:\s*(.*?)\s*-->\s*$/
 
-function notesFileFor(root, relativePath) {
+function notesFileFor(notesDir, relativePath) {
   const m = /^lectures\/([^/]+)\.md$/.exec(relativePath || '')
-  return m ? path.join(root, 'trainer', 'notes', m[1] + '.md') : null
+  return m ? path.join(notesDir, m[1] + '.md') : null
 }
 
 export function parseNotes(text) {
@@ -80,9 +81,9 @@ export function parseNotes(text) {
   return blocks
 }
 
-function injectTrainerNotes(md, root) {
+function injectTrainerNotes(md, notesDir) {
   md.core.ruler.push('trainer_inject', state => {
-    const file = notesFileFor(root, state.env && state.env.relativePath)
+    const file = notesFileFor(notesDir, state.env && state.env.relativePath)
     let text
     try { text = file && fs.readFileSync(file, 'utf8') } catch { return }
     if (!text) return
@@ -111,22 +112,22 @@ function injectTrainerNotes(md, root) {
 }
 
 // dev server: re-render a lecture when its notes file changes
-function trainerNotesWatcher(root) {
+function trainerNotesWatcher(root, notesDir) {
   return {
     name: 'course-kit-trainer-notes',
     enforce: 'pre',
     // VitePress caches rendered pages by source text: tag the source with the notes
     // content so a notes edit invalidates the cached render
     transform(code, id) {
-      const file = notesFileFor(root, path.relative(path.join(root, 'site'), id.split('?')[0]))
+      const file = notesFileFor(notesDir, path.relative(path.join(root, 'site'), id.split('?')[0]))
       let text
       try { text = file && fs.readFileSync(file, 'utf8') } catch { return }
       if (text == null) return
       return { code: code + `\n<!-- trainer-notes:${createHash('md5').update(text).digest('hex')} -->\n`, map: null }
     },
     configureServer(server) {
-      let dir = path.join(root, 'trainer', 'notes')
-      try { dir = fs.realpathSync(dir) } catch { return } // trainer/ may be a symlink
+      let dir = notesDir
+      try { dir = fs.realpathSync(dir) } catch { return } // the trainer folder may be a symlink
       server.watcher.add(dir)
       const onChange = f => {
         if (!f.startsWith(dir + path.sep) || !f.endsWith('.md')) return
@@ -148,9 +149,12 @@ function withBase(base, p) {
 }
 
 /**
- * defineCourse({ title, description, lang, nav, sidebar, footerMessage, base, data })
+ * defineCourse({ title, description, lang, nav, sidebar, footerMessage, base, data, trainerDir })
  *   data - optional path (relative to the course root) to a JSON file exposed to
  *          runnable code blocks as `doc`. Default: {}.
+ *   trainerDir - optional path (relative to the course root) to the trainer folder;
+ *          notes are read from <trainerDir>/notes/. Default: 'trainer'.
+ *          Example for a trainer folder next to the course repo: '../trainer'.
  * Returns a full VitePress config.
  */
 export function defineCourse({
@@ -161,11 +165,13 @@ export function defineCourse({
   sidebar = [],
   footerMessage = '',
   base,
-  data
+  data,
+  trainerDir = 'trainer'
 } = {}) {
   const resolvedBase = base || process.env.BASE || '/'
   const trainer = process.env.TRAINER === '1'
   const dataFile = data ? path.resolve(process.cwd(), data) : path.join(here, 'theme/empty-data.json')
+  const notesDir = path.join(path.resolve(process.cwd(), trainerDir), 'notes')
 
   return defineConfig({
     title,
@@ -179,11 +185,11 @@ export function defineCourse({
       lineNumbers: false,
       config(md) {
         runnableCode(md)
-        trainerNotes(md, trainer, process.cwd())
+        trainerNotes(md, trainer, notesDir)
       }
     },
     vite: {
-      plugins: trainer ? [trainerNotesWatcher(process.cwd())] : [],
+      plugins: trainer ? [trainerNotesWatcher(process.cwd(), notesDir)] : [],
       // the Notes button is only shown in TRAINER=1 builds
       define: { __CK_TRAINER__: JSON.stringify(trainer) },
       resolve: {

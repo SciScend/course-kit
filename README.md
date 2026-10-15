@@ -51,10 +51,15 @@ Never deploy a `TRAINER=1` build. The Notes button is only rendered when `TRAINE
 ### Notes files (re-injection)
 
 With `TRAINER=1`, for each page `lectures/NN-topic.md` the kit reads
-`trainer/notes/NN-topic.md` (from the course root, i.e. the working directory) if it
-exists and injects its blocks into the page inside `.trainer-note` boxes. No file, no
-`trainer/` folder, or no `TRAINER`: nothing happens and nothing fails. Blocks are
-introduced by a marker comment alone on a line:
+`<trainerDir>/notes/NN-topic.md` if it exists and injects its blocks into the page
+inside `.trainer-note` boxes. `trainerDir` is an option of `defineCourse`, a path
+relative to the course root (the working directory); the default is `trainer`. For a
+trainer folder next to the course repo:
+
+    export default defineCourse({ ..., trainerDir: '../trainer' })
+
+No file, no trainer folder, or no `TRAINER`: nothing happens and nothing fails. Blocks
+are introduced by a marker comment alone on a line:
 
     <!-- after: Exact heading text -->    at the end of that section (just before the
                                            next heading of the same or higher level)
