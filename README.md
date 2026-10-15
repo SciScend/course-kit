@@ -1,45 +1,55 @@
 # course-kit
 
-Shared, versioned package for every SciScend course site: VitePress config,
-theme (runnable code blocks, trainer/present modes), homework `check.js`,
-Pages deploy workflow and a course scaffold.
+Shared, versioned package for every course site: VitePress config, theme
+(runnable code blocks, trainer/present modes), homework `check.js`, Pages deploy
+workflow and a course scaffold (Slides / Homework / Labs / trainer).
 
 ## Architecture
 
-Each course is three separate things:
+Each course is one plain folder (not a git repo) with four repositories side by side:
 
-1. Public site repo (`SciScend/<slug>`): VitePress site, deployed to GitHub Pages. Depends on this kit.
-2. Public homework template repo: the `code/` tasks students copy (uses `homework/check.js`).
-3. Local-only trainer vault (`/data/projects/teaching/trainer-vault/<slug>/`): notes, solutions, planning. Not a git repo that is ever pushed publicly. Linked into the course as `./trainer` (git-ignored).
+```text
+<Name>/                  local README with the table of folders and repos
+    Slides/              <owner>/<Name>-Slides    public  - the VitePress site, deployed to GitHub Pages; depends on this kit
+    Homework/            <owner>/<Name>-Homework  public  - tasks; students clone it, keep it as `upstream`,
+                                                            push their work to their own `origin`, pull new tasks
+    Labs/                <owner>/<Name>-Labs      public  - code written in class; students only pull it
+    trainer/             <owner>/<Name>-Trainer   PRIVATE - notes, solutions, planning
+    ai/                  local only - Claude session reports
+```
 
-Rule: trainer material never goes in a public repo. `::: trainer` blocks in
-lectures are dropped from the HTML unless `TRAINER=1`, so public builds stay clean.
+Slides reads the trainer notes from `../trainer` (`trainerDir` option) only when
+`TRAINER=1`. Solutions load `Homework/check.js` relative to their own file.
+
+Rules:
+
+- Trainer material (notes, solutions) never goes in a public repo. `::: trainer`
+  blocks in lectures are dropped from the HTML unless `TRAINER=1`, so public builds
+  stay clean.
+- Homework is add-only: new folders before each session, published tasks are not
+  changed (the students' `git pull upstream main` would conflict).
 
 ## Start a course
 
-    node bin/new-course.mjs <slug> "<Title>" [--out <parent dir>] [--vault <parent dir>]
-    cd ../<slug> && npm install && npm run dev
+    node bin/new-course.mjs <Name> "<Title>" [--out <parent dir>] [--owner <github owner>] [--github] [--no-install]
 
-It refuses to overwrite existing folders. Edit `site/.vitepress/config.mjs`.
+- `--out`: where to create `<Name>/` (default: the current directory).
+- `--owner`: GitHub user or organisation (default: `ivapopova-courses`).
+- Every repo gets `git init`, its `origin` remote (SSH) and a first commit; Slides
+  gets `npm install` first (skip with `--no-install`).
+- `--github`: also create the four repos with `gh` (Trainer private), push them and
+  turn on GitHub Pages for Slides.
 
-API:
+Example:
 
-    defineCourse({ title, description, lang, nav, sidebar, footerMessage, base, data })
+    cd /data/projects/teaching/courses/ProgressBG
+    node /data/projects/teaching/course-kit/bin/new-course.mjs JS-Basics-Practical-ACME "JS & TS Basics" --github
 
-`base` falls back to `BASE` env, then `/`. `data` is an optional JSON path
-(relative to the course root) exposed as `doc` in ```` ```js run ```` blocks.
-Footer always links to https://sciscend.com.
+## Update the kit
 
-## Depend on the kit
-
-Before the kit is pushed: `"@sciscend/course-kit": "file:../course-kit"` (the
-scaffold adds `.npmrc` with `install-links=true`; after kit changes run `rm -rf node_modules/@sciscend scaffold adds `.npmrc` with `install-links=true`; re-run `npm install` after kit changes).scaffold adds `.npmrc` with `install-links=true`; re-run `npm install` after kit changes). npm install`, plain `npm install` does not re-copy).
-After: `"@sciscend/course-kit": "github:SciScend/course-kit#v0.1.0"`.
-
-## Upgrade the kit
-
-Tag a release in this repo (`git tag v0.2.0`), then in each course change the
-`#vX` in package.json, run `npm install`, `npm run build`, commit.
+Tag a release in this repo (bump `version` in package.json, `git tag -a v0.4.0 -m ...`,
+push the tag), then in each course's Slides change the `#vX` in package.json, run
+`npm install`, `npm run build`, commit.
 
 ## Teach with trainer notes
 
@@ -75,15 +85,12 @@ the notes file are ignored. Editing a notes file re-renders its lecture in `dev`
 `homework/check.js` prints OK/FAIL per check, a final "N of M checks passed",
 and sets exit code 1 on any failure (usable in CI).
 
-## First publish checklist (per course)
+## First publish checklist (per course, without `--github`)
 
-1. Push course-kit to github.com/SciScend/course-kit and tag a version (v0.1.0).
-2. In the course, change the dependency from `file:...` to
-   `github:SciScend/course-kit#v0.1.0` and run `npm install`.
-3. Create the public repos `<course>` and `<course>-homework` (mark the latter as a
-   template repository) in the SciScend org.
-4. Course repo: Settings -> Pages -> Source: GitHub Actions. Push main.
-5. Check that `trainer` is in .gitignore and `git ls-files | grep -i trainer` is empty.
+1. Create the repos `<owner>/<Name>-Slides`, `-Homework`, `-Labs` (public) and
+   `-Trainer` (**private**), and push each folder (`git push -u origin main`).
+2. Slides: Settings -> Pages -> Source: GitHub Actions; re-run the deploy workflow.
+3. Check that `git -C Slides ls-files | grep -i trainer` is empty.
 
 ---
 
