@@ -14,9 +14,11 @@ const STORAGE_KEY = 'ck-panel-widths'
 const HIDE_BELOW = 24        // narrower than this the panel is hidden
 const RESTORE_MIN = 120      // a panel shown again by a click gets at least this width
 const STEP = 16              // arrow key step (Shift: 4 x STEP)
+// the window width from which the "In this page" column is shown (asideMinWidth in config.mjs)
+const ASIDE_MIN_WIDTH = typeof __CK_ASIDE_MIN_WIDTH__ !== 'undefined' ? __CK_ASIDE_MIN_WIDTH__ : 1280
 const panels = {
   sidebar: { cssVar: '--vp-sidebar-width', hideClass: 'ck-hide-sidebar', def: 272, min: 0, max: 640, dir: 1, minViewport: 960 },
-  aside: { cssVar: '--ck-aside-width', hideClass: 'ck-hide-aside', def: 256, min: 0, max: 640, dir: -1, minViewport: 1280 }
+  aside: { cssVar: '--ck-aside-width', hideClass: 'ck-hide-aside', def: 256, min: 0, max: 640, dir: -1, minViewport: ASIDE_MIN_WIDTH }
 }
 
 const widths = { sidebar: panels.sidebar.def, aside: panels.aside.def }
@@ -48,6 +50,13 @@ function shown(el) {
   return !!el && el.getBoundingClientRect().width > 0 && getComputedStyle(el).display !== 'none'
 }
 
+// x of the grey line on the left of the outline; without an outline, where it would be
+function asideLine(aside) {
+  const outline = aside.querySelector('.VPDocAsideOutline .content')
+  if (outline && shown(outline)) return outline.getBoundingClientRect().left
+  return aside.getBoundingClientRect().left + parseFloat(getComputedStyle(aside).paddingLeft || 0)
+}
+
 function place() {
   const root = document.documentElement
   const vw = root.clientWidth
@@ -63,7 +72,8 @@ function place() {
   }
   if (!present && aside && vw >= panels.aside.minViewport) {
     if (hidden.value.aside) next.aside = { left: vw - 10, top: navHeight }
-    else if (shown(aside)) next.aside = { left: aside.getBoundingClientRect().left + 12, top: navHeight }
+    // the handle's line (3px from its left side) on the grey line left of the outline
+    else if (shown(aside)) next.aside = { left: asideLine(aside) - 4, top: navHeight }
   }
   pos.value = next
 }

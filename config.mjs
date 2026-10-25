@@ -144,17 +144,56 @@ function trainerNotesWatcher(root, notesDir) {
   }
 }
 
+// ---- "In this page" column from a narrower window ---------------------------
+// VitePress shows the column on the right (with the navigation on the left) only
+// from 1280px, so a laptop at 100% zoom often gets none. With asideMinWidth below
+// 1280, asideCss() goes into <head> and shows the column from that width, and
+// the plugin asideBreakpoint() changes the width in VitePress' useAside(), which
+// decides whether the current section is highlighted in the column.
+// ResizeHandles.vue gets the width as __CK_ASIDE_MIN_WIDTH__ (vite.define).
+function asideCss(width) {
+  return `
+@media (min-width: ${width}px) and (max-width: 1279px) {
+  html:root { --ck-aside-width: 224px; }
+  .VPContent .VPDoc .container { display: flex; justify-content: center; }
+  .VPContent .VPDoc .aside { display: block; }
+  .VPContent .VPDoc .content { order: 1; margin: 0; min-width: 0; }
+  .VPLocalNav { display: none !important; }
+  html.ck-hide-aside .VPDoc .aside { display: none !important; }
+}
+`
+}
+
+function asideBreakpoint(width) {
+  return {
+    name: 'course-kit-aside',
+    enforce: 'pre',
+    transform(code, id) {
+      if (!/theme-default[\\/]composables[\\/]aside\.js$/.test(id.split('?')[0])) return
+      const query = "'(min-width: 1280px)'"
+      if (!code.includes(query)) {
+        this.warn('[course-kit] asideMinWidth: the 1280px media query is no longer in VitePress\' useAside()')
+        return
+      }
+      return { code: code.replace(query, `'(min-width: ${width}px)'`), map: null }
+    }
+  }
+}
+
 function withBase(base, p) {
   return base.replace(/\/$/, '') + p
 }
 
 /**
- * defineCourse({ title, description, lang, nav, sidebar, footerMessage, base, data, trainerDir })
+ * defineCourse({ title, description, lang, nav, sidebar, footerMessage, base, data, trainerDir, asideMinWidth })
  *   data - optional path (relative to the course root) to a JSON file exposed to
  *          runnable code blocks as `doc`. Default: {}.
  *   trainerDir - optional path (relative to the course root) to the trainer folder;
  *          notes are read from <trainerDir>/notes/. Default: 'trainer'.
  *          Example for a trainer folder next to the course repo: '../trainer'.
+ *   asideMinWidth - optional window width (px) from which the "In this page" column
+ *          is shown next to the navigation. Default: 1280 (as in VitePress).
+ *          Example for laptops at 100% zoom: 1152.
  * Returns a full VitePress config.
  */
 export function defineCourse({
@@ -166,12 +205,14 @@ export function defineCourse({
   footerMessage = '',
   base,
   data,
-  trainerDir = 'trainer'
+  trainerDir = 'trainer',
+  asideMinWidth = 1280
 } = {}) {
   const resolvedBase = base || process.env.BASE || '/'
   const trainer = process.env.TRAINER === '1'
   const dataFile = data ? path.resolve(process.cwd(), data) : path.join(here, 'theme/empty-data.json')
   const notesDir = path.join(path.resolve(process.cwd(), trainerDir), 'notes')
+  const narrowAside = asideMinWidth < 1280
 
   return defineConfig({
     title,
@@ -180,7 +221,10 @@ export function defineCourse({
     base: resolvedBase,
     cleanUrls: true,
     lastUpdated: false,
-    head: [['link', { rel: 'icon', href: withBase(resolvedBase, '/favicon.svg') }]],
+    head: [
+      ['link', { rel: 'icon', href: withBase(resolvedBase, '/favicon.svg') }],
+      ...(narrowAside ? [['style', {}, asideCss(asideMinWidth)]] : [])
+    ],
     markdown: {
       lineNumbers: false,
       config(md) {
@@ -189,9 +233,15 @@ export function defineCourse({
       }
     },
     vite: {
-      plugins: trainer ? [trainerNotesWatcher(process.cwd(), notesDir)] : [],
+      plugins: [
+        ...(narrowAside ? [asideBreakpoint(asideMinWidth)] : []),
+        ...(trainer ? [trainerNotesWatcher(process.cwd(), notesDir)] : [])
+      ],
       // the Notes button is only shown in TRAINER=1 builds
-      define: { __CK_TRAINER__: JSON.stringify(trainer) },
+      define: {
+        __CK_TRAINER__: JSON.stringify(trainer),
+        __CK_ASIDE_MIN_WIDTH__: JSON.stringify(asideMinWidth)
+      },
       resolve: {
         alias: { 'course-data': dataFile },
         // the kit may be symlinked (file: dependency): keep a single copy of vue

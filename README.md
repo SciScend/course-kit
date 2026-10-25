@@ -80,6 +80,20 @@ heading's markdown source (e.g. `` `let` and `const` ``); an unknown heading giv
 warning and the block goes to the end. HTML comments and a leading `# title` line in
 the notes file are ignored. Editing a notes file re-renders its lecture in `dev`.
 
+## The "In this page" column on laptops
+
+VitePress shows the column on the right only on windows from 1280px wide (with
+the navigation on the left), so a laptop at 100% zoom often gets none. To show it
+from a narrower window:
+
+    export default defineCourse({ ..., asideMinWidth: 1152 })
+
+Between that width and 1279px the column is a bit narrower (224px), the current
+section is highlighted in it, and its handle can resize or hide it, as on wider
+screens. The default, 1280, changes nothing. The kit changes a media query inside
+VitePress' `useAside()` for this; if a VitePress update changes that code, the
+build warns `asideMinWidth: the 1280px media query is no longer in VitePress' useAside()`.
+
 ## Homework check
 
 `homework/check.js` prints OK/FAIL per check, a final "N of M checks passed",
