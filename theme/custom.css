@@ -225,14 +225,20 @@ html.trainer .trainer-note { display: block; }
     padding-left: min(32px, calc(var(--vp-sidebar-width) / 6)) !important;
     padding-right: min(32px, calc(var(--vp-sidebar-width) / 6)) !important;
   }
-  /* the site title above the navigation is cut, not drawn over the search box */
-  .VPNavBar.has-sidebar .title {
+  /* the site title above the navigation is cut with "...", not drawn over the
+     search box. ".container > .title" is the box of the title: the link inside
+     it has the class "title" too, and with the padding a second time the last
+     letters of a title that fits were cut */
+  .VPNavBar.has-sidebar .container > .title {
     overflow: hidden;
     padding-left: min(32px, calc(var(--vp-sidebar-width) / 6)) !important;
     padding-right: 8px !important;
   }
   .VPNavBarTitle .title {
     min-width: 0;
+  }
+  /* the link is a flex box, so the "..." must be on the text itself */
+  .VPNavBarTitle .title span {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -347,7 +353,7 @@ html.ck-resizing * {
     padding-left: 32px;
     width: var(--vp-sidebar-width);
   }
-  .VPNavBar.has-sidebar .title {
+  .VPNavBar.has-sidebar .container > .title {
     padding-left: 32px;
     width: var(--vp-sidebar-width);
   }
