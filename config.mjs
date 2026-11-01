@@ -26,11 +26,13 @@ function runnableCode(md) {
 // otherwise nothing is emitted (the content is dropped, so public builds never contain it).
 function trainerNotes(md, enabled, notesDir) {
   md.use(container, 'trainer', {
+    // "::: trainer Some text" -> the box title is "Trainer notes - Some text"
     render(tokens, idx) {
       if (!enabled) return ''
-      return tokens[idx].nesting === 1
-        ? '<div class="trainer-note"><p class="trainer-note-title">Trainer notes</p>\n'
-        : '</div>\n'
+      if (tokens[idx].nesting !== 1) return '</div>\n'
+      const about = tokens[idx].info.trim().replace(/^trainer\s*/, '')
+      const title = 'Trainer notes' + (about ? ' - ' + md.renderInline(about) : '')
+      return `<div class="trainer-note"><p class="trainer-note-title">${title}</p>\n`
     }
   })
   if (enabled) { injectTrainerNotes(md, notesDir); return }
@@ -52,14 +54,18 @@ function trainerNotes(md, enabled, notesDir) {
 // <trainerDir>/notes/NN-topic.md injected inside `.trainer-note` boxes
 // (trainerDir: option of defineCourse, default <course root>/trainer).
 // Notes file format: blocks introduced by a marker comment on its own line:
+//   <!-- start: Exact heading text -->   insert just after that heading (start of
+//                                        that section) - the usual place
+//   <!-- before: Exact heading text -->  insert just before that heading
 //   <!-- after: Exact heading text -->   insert just before the next heading of the
 //                                        same or higher level (end of that section)
-//   <!-- before: Exact heading text -->  insert just before that heading
+// The box of a "before" / "after" block names its heading in the title, as it sits
+// outside its own section; so does a block whose heading was not found.
 // Text before the first marker goes at the end of the page. HTML comments inside
 // blocks and a leading "# title" line are dropped. The heading text is the heading's
 // markdown source (e.g. "`let` and `const`"). Missing file or heading: no failure
 // (unknown heading -> end of page, with a warning).
-const MARKER = /^<!--\s*(after|before)\s*:\s*(.*?)\s*-->\s*$/
+const MARKER = /^<!--\s*(start|before|after)\s*:\s*(.*?)\s*-->\s*$/
 
 function notesFileFor(notesDir, relativePath) {
   const m = /^lectures\/([^/]+)\.md$/.exec(relativePath || '')
@@ -95,16 +101,22 @@ function injectTrainerNotes(md, notesDir) {
     const inserts = [] // { pos, order, tokens }
     parseNotes(text).forEach((b, order) => {
       let pos = tokens.length
+      let about = ''
       const h = headings.findIndex(x => x.text === b.heading)
       if (b.kind !== 'end' && h < 0) {
         console.warn(`[course-kit] trainer notes: heading not found in ${state.env.relativePath}: "${b.heading}"`)
+        about = `heading not found: ${b.heading}`
+      } else if (b.kind === 'start') {
+        pos = headings[h].i + 3 // heading_open, inline, heading_close
       } else if (b.kind === 'before') {
         pos = headings[h].i
+        about = b.heading
       } else if (b.kind === 'after') {
         const next = headings.slice(h + 1).find(x => x.level <= headings[h].level)
         if (next) pos = next.i
+        about = b.heading
       }
-      inserts.push({ pos, order, tokens: md.parse(`::: trainer\n${b.body}\n:::\n`, {}) })
+      inserts.push({ pos, order, tokens: md.parse(`::: trainer ${about}\n${b.body}\n:::\n`, {}) })
     })
     inserts.sort((a, b) => b.pos - a.pos || b.order - a.order)
     for (const ins of inserts) tokens.splice(ins.pos, 0, ...ins.tokens)

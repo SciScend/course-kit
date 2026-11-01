@@ -71,9 +71,17 @@ trainer folder next to the course repo:
 No file, no trainer folder, or no `TRAINER`: nothing happens and nothing fails. Blocks
 are introduced by a marker comment alone on a line:
 
+    <!-- start: Exact heading text -->    just after that heading (the start of that
+                                           section) - the usual place: the trainer
+                                           reads the note before teaching the section
+    <!-- before: Exact heading text -->   just before that heading (e.g. the start of
+                                           the session, before section 1)
     <!-- after: Exact heading text -->    at the end of that section (just before the
                                            next heading of the same or higher level)
-    <!-- before: Exact heading text -->   just before that heading
+
+A `before` or `after` box sits outside its own section, so its title names the
+heading ("Trainer notes - 4. Default values"). In a lecture page, `::: trainer Some
+text` gives the title "Trainer notes - Some text" the same way.
 
 Text before the first marker goes at the end of the page. The heading text is the
 heading's markdown source (e.g. `` `let` and `const` ``); an unknown heading gives a
