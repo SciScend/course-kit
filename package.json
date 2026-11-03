@@ -1,12 +1,13 @@
 {
   "name": "@sciscend/course-kit",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Shared VitePress config, theme and homework helper for SciScend courses",
   "type": "module",
   "license": "MIT",
   "exports": {
     "./config": "./config.mjs",
     "./theme": "./theme/index.js",
+    "./theme/keepPlace.js": "./theme/keepPlace.js",
     "./homework/check.js": "./homework/check.js",
     "./templates/deploy-pages.yml": "./templates/deploy-pages.yml",
     "./package.json": "./package.json"

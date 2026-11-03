@@ -58,6 +58,10 @@ push the tag), then in each course's Slides change the `#vX` in package.json, ru
 Open the site and press "t" (or use the Notes button) to show the notes.
 Switching Notes or Present ("p") keeps the line under the nav bar in place, though
 the page reflows (`theme/keepPlace.js`).
+A course with a language switch can keep the place across the two versions of a
+page too (`describePlace()` before the switch, `restoreDescribedPlace()` after it,
+from `@sciscend/course-kit/theme/keepPlace.js`): the pages must be built from the
+same Markdown, so that they have the same headings and blocks in the same order.
 Never deploy a `TRAINER=1` build. The Notes button is only rendered when `TRAINER=1`.
 
 ### Notes files (re-injection)
