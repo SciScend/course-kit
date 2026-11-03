@@ -2,7 +2,9 @@
 // Two view modes, kept on <html> as classes:
 //   present - bigger text, no sidebars: for the projector in class (key "p")
 //   trainer - shows the "Trainer notes" boxes (key "t", or ?trainer in the URL)
+// A switch keeps the line on screen in place (keepPlace.js), though the page reflows.
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { keepPlace } from '../keepPlace.js'
 
 const hasNotes = typeof __CK_TRAINER__ !== 'undefined' && __CK_TRAINER__
 const present = ref(false)
@@ -16,8 +18,8 @@ function apply() {
   } catch (e) { /* storage blocked - modes just are not remembered */ }
 }
 
-function togglePresent() { present.value = !present.value; apply() }
-function toggleTrainer() { if (!hasNotes) return; trainer.value = !trainer.value; apply() }
+function togglePresent() { keepPlace(() => { present.value = !present.value; apply() }) }
+function toggleTrainer() { if (!hasNotes) return; keepPlace(() => { trainer.value = !trainer.value; apply() }) }
 
 function onKey(e) {
   const t = e.target

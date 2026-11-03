@@ -56,6 +56,8 @@ push the tag), then in each course's Slides change the `#vX` in package.json, ru
     TRAINER=1 npm run dev
 
 Open the site and press "t" (or use the Notes button) to show the notes.
+Switching Notes or Present ("p") keeps the line under the nav bar in place, though
+the page reflows (`theme/keepPlace.js`).
 Never deploy a `TRAINER=1` build. The Notes button is only rendered when `TRAINER=1`.
 
 ### Notes files (re-injection)
