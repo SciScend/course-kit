@@ -1,19 +1,25 @@
 {
   "name": "@sciscend/course-kit",
-  "version": "0.5.3",
-  "description": "Shared VitePress config, theme and homework helper for SciScend courses",
+  "version": "0.6.0",
+  "description": "Shared VitePress config, theme, translations, checks and homework helper for SciScend courses",
   "type": "module",
   "license": "MIT",
   "exports": {
     "./config": "./config.mjs",
     "./theme": "./theme/index.js",
     "./theme/keepPlace.js": "./theme/keepPlace.js",
+    "./theme/scrollHash.js": "./theme/scrollHash.js",
+    "./i18n": "./i18n/i18n.mjs",
     "./homework/check.js": "./homework/check.js",
     "./templates/deploy-pages.yml": "./templates/deploy-pages.yml",
     "./package.json": "./package.json"
   },
-  "bin": { "new-course": "bin/new-course.mjs" },
-  "files": ["config.mjs", "theme", "homework", "templates", "bin"],
+  "bin": {
+    "new-course": "bin/new-course.mjs",
+    "course-i18n": "bin/course-i18n.mjs",
+    "course-check": "bin/course-check.mjs"
+  },
+  "files": ["config.mjs", "theme", "i18n", "check", "homework", "templates", "bin"],
   "dependencies": {
     "markdown-it-container": "^4.0.0"
   },

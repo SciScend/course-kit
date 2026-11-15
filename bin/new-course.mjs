@@ -9,10 +9,12 @@
 //       ai/                 local only - session reports
 //
 //   node bin/new-course.mjs <Name> "<Title>" [--out <parent dir>] [--owner <github owner>]
-//                           [--github] [--no-install]
+//                           [--i18n] [--github] [--no-install]
 //
 // Defaults: --out = current directory, --owner = ivapopova-courses.
 // Every repo gets `git init`, its origin remote (SSH) and a first commit.
+// --i18n: the site also gets a Bulgarian version (EN / BG button), translated through
+// .po files in Slides/i18n/ - see i18n/README.md of the kit.
 // --github also creates the four GitHub repos with `gh`, pushes them and turns on
 // GitHub Pages (source: GitHub Actions) for Slides.
 // --no-install skips `npm install` in Slides (then commit package-lock.json yourself
@@ -31,12 +33,12 @@ const flags = new Set()
 const pos = []
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--out' || args[i] === '--owner') opts[args[i].slice(2)] = args[++i]
-  else if (args[i] === '--github' || args[i] === '--no-install') flags.add(args[i])
+  else if (args[i] === '--github' || args[i] === '--no-install' || args[i] === '--i18n') flags.add(args[i])
   else pos.push(args[i])
 }
 const [name, title] = pos
 if (!name || !title || !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name) || !opts.owner) {
-  console.error('Usage: node bin/new-course.mjs <Name> "<Title>" [--out <dir>] [--owner <owner>] [--github] [--no-install]')
+  console.error('Usage: node bin/new-course.mjs <Name> "<Title>" [--out <dir>] [--owner <owner>] [--i18n] [--github] [--no-install]')
   console.error('Name: letters, digits, dots, dashes and underscores (e.g. JS-Basics-Practical-ACME)')
   process.exit(2)
 }
@@ -57,6 +59,7 @@ const sshUrl = part => `git@github.com:${owner}/${repoName(part)}.git`
 const pagesUrl = `https://${owner.toLowerCase()}.github.io/${repoName('Slides')}/`
 const q = s => JSON.stringify(s)
 
+const i18n = flags.has('--i18n')
 const files = {} // path relative to root -> content
 
 // ---- course folder (local only) ----------------------------------------------
@@ -158,17 +161,64 @@ files['Slides/package.json'] = JSON.stringify({
     'dev:trainer': 'TRAINER=1 vitepress dev site',
     build: 'vitepress build site',
     'build:trainer': 'TRAINER=1 vitepress build site',
-    preview: 'vitepress preview site'
+    preview: 'vitepress preview site',
+    check: 'course-check',
+    ...(i18n ? {
+      'i18n:update': 'course-i18n update',
+      'i18n:status': 'course-i18n status',
+      'i18n:check': 'course-i18n check',
+      'i18n:todo': 'course-i18n todo',
+      'i18n:pack': 'course-i18n pack',
+      'i18n:import': 'course-i18n import'
+    } : {})
   },
   dependencies: { '@sciscend/course-kit': `github:SciScend/course-kit#v${kitVersion}` },
   devDependencies: { vitepress: '^1.6.4' }
 }, null, 2) + '\n'
 
-files['Slides/.gitignore'] = 'node_modules/\nsite/.vitepress/cache/\nsite/.vitepress/dist/\n'
+files['Slides/.gitignore'] = 'node_modules/\nsite/.vitepress/cache/\nsite/.vitepress/dist/\n' + (i18n ? 'site/bg/\ni18n/out/\n' : '')
+
+if (i18n) {
+  files['Slides/i18n/config.json'] = JSON.stringify({
+    project: title,
+    languages: ['bg'],
+    site: pagesUrl,
+    readers: 'The readers learn this for their job; they read English technical documentation every day.'
+  }, null, 2) + '\n'
+  files['Slides/i18n/glossary.md'] = `# Glossary - English to Bulgarian
+
+The terms of this course: what stays in English and how the rest is translated.
+The rule for technical terms and the words of every course site (session, lecture,
+homework, the buttons) are in the common glossary of the course kit
+(\`node_modules/@sciscend/course-kit/i18n/glossary-common.md\`). Where the two
+differ, this file wins. Add the terms of each lecture when it is written.
+
+## Stays in English
+
+| Term | Note |
+|---|---|
+
+## Translated
+
+| English | Bulgarian |
+|---|---|
+`
+  files['Slides/i18n/README.md'] = `# Translations
+
+The Bulgarian version of the site is generated from the English pages and the
+translations in \`bg/*.po\` (one file per page). The generator and its commands
+(\`npm run i18n:*\`) are in the course kit; how it all works:
+\`node_modules/@sciscend/course-kit/i18n/README.md\`
+(https://github.com/SciScend/course-kit/blob/main/i18n/README.md).
+
+Here: \`bg/\` (the translations), \`glossary.md\` (the terms of this course),
+\`config.json\` (the course name, the site address and the readers, for the
+translator's instructions). \`out/\` and \`../site/bg/\` are generated.
+`
+}
 
 files['Slides/site/.vitepress/config.mjs'] = `import { defineCourse } from '@sciscend/course-kit/config'
-
-export default defineCourse({
+${i18n ? "import { withLocales } from '@sciscend/course-kit/i18n'\n\nconst footerMessage = " + q(title) + '\n\nconst course = defineCourse({' : '\nexport default defineCourse({'}
   title: ${q(title)},
   description: ${q(title)},
   lang: 'en',
@@ -189,9 +239,9 @@ export default defineCourse({
       { text: '1. Introduction', link: '/lectures/01-intro' }
     ] }
   ],
-  footerMessage: ${q(title)}
+  footerMessage${i18n ? '' : ': ' + q(title)}
 })
-`
+${i18n ? "\n// the Bulgarian version (site/bg/, generated from i18n/bg/*.po) and the EN / BG button\nexport default await withLocales(course, { footerMessage })\n" : ''}`
 files['Slides/site/.vitepress/theme/index.js'] = `import theme from '@sciscend/course-kit/theme'
 
 export default theme
@@ -506,7 +556,10 @@ fs.copyFileSync(path.join(kitDir, 'templates/deploy-pages.yml'), path.join(root,
 
 const run = (cmd, cmdArgs, cwd) => execFileSync(cmd, cmdArgs, { cwd, stdio: 'inherit' })
 
-if (!flags.has('--no-install')) run('npm', ['install', '--no-audit', '--no-fund'], path.join(root, 'Slides'))
+if (!flags.has('--no-install')) {
+  run('npm', ['install', '--no-audit', '--no-fund'], path.join(root, 'Slides'))
+  if (i18n) run('npm', ['run', '-s', 'i18n:update'], path.join(root, 'Slides')) // the first .po files
+}
 
 // git: init, remote first (so a remote-based includeIf identity applies), first commit
 for (const part of Object.keys(parts)) {

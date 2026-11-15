@@ -1,8 +1,12 @@
 # course-kit
 
 Shared, versioned package for every course site: VitePress config, theme
-(runnable code blocks, trainer/present modes), homework `check.js`, Pages deploy
-workflow and a course scaffold (Slides / Homework / Labs / trainer).
+(runnable code blocks, trainer/present modes), translations (a second language
+from gettext `.po` files), site checks, homework `check.js`, Pages deploy workflow
+and a course scaffold (Slides / Homework / Labs / trainer).
+
+What is the same in every course lives here; a course keeps only its own content
+and settings.
 
 ## Architecture
 
@@ -31,12 +35,14 @@ Rules:
 
 ## Start a course
 
-    node bin/new-course.mjs <Name> "<Title>" [--out <parent dir>] [--owner <github owner>] [--github] [--no-install]
+    node bin/new-course.mjs <Name> "<Title>" [--out <parent dir>] [--owner <github owner>] [--i18n] [--github] [--no-install]
 
 - `--out`: where to create `<Name>/` (default: the current directory).
 - `--owner`: GitHub user or organisation (default: `ivapopova-courses`).
 - Every repo gets `git init`, its `origin` remote (SSH) and a first commit; Slides
   gets `npm install` first (skip with `--no-install`).
+- `--i18n`: the site also gets a Bulgarian version, translated through `.po` files
+  (see "Translations").
 - `--github`: also create the four repos with `gh` (Trainer private), push them and
   turn on GitHub Pages for Slides.
 
@@ -51,6 +57,35 @@ Tag a release in this repo (bump `version` in package.json, `git tag -a v0.4.0 -
 push the tag), then in each course's Slides change the `#vX` in package.json, run
 `npm install`, `npm run build`, commit.
 
+## Translations
+
+A second language for the site (now: Bulgarian), with an EN / BG button that keeps
+the reader's place. The English Markdown is the source; `npm run i18n:update` writes
+one gettext `.po` file per page into the course's `i18n/bg/`, and every `dev` and
+`build` generates `site/bg/` from the two. A person translates with `i18n:pack` /
+`i18n:import`; a language model with `i18n:todo` / `i18n:import` (only the texts
+that need work, as plain text).
+
+The generator, the commands, the button, the translator's instructions and the
+common glossary are in this kit; the `.po` files, the glossary of the course and
+`i18n/config.json` are in the course. Everything: [`i18n/README.md`](i18n/README.md).
+
+## Check a site
+
+    npm run check            (in a course: "check": "course-check")
+    npm run check -- 08      (the argument goes to the course's own checks)
+
+`course-check` prints the problems and one line per step, and exits with 1 if a step
+failed:
+
+1. **links** - every link to a page and every `#section` link points to something
+   that exists (VitePress checks the pages only, never the `#sections`);
+2. **notes** - every trainer notes block names a heading of its lecture;
+3. **i18n** - `update`, then no translation has changed code, links or markup;
+4. **build** - `npm run build` passes (skip with `--no-build`);
+5. **course** - the npm script `check:course` of the course, if it has one (for
+   example: run every runnable example of the lectures).
+
 ## Teach with trainer notes
 
     TRAINER=1 npm run dev
@@ -58,10 +93,14 @@ push the tag), then in each course's Slides change the `#vX` in package.json, ru
 Open the site and press "t" (or use the Notes button) to show the notes.
 Switching Notes or Present ("p") keeps the line under the nav bar in place, though
 the page reflows (`theme/keepPlace.js`).
-A course with a language switch can keep the place across the two versions of a
-page too (`describePlace()` before the switch, `restoreDescribedPlace()` after it,
-from `@sciscend/course-kit/theme/keepPlace.js`): the pages must be built from the
-same Markdown, so that they have the same headings and blocks in the same order.
+The EN / BG button (`theme/components/LangSwitch.vue`) keeps the place across the
+two versions of a page too (`describePlace()` before the switch,
+`restoreDescribedPlace()` after it, from `theme/keepPlace.js`): the pages are built
+from the same Markdown, so they have the same headings and blocks in the same order.
+
+`theme/scrollHash.js` (`setupScrollHash(useData())` in the `setup()` of the course's
+theme) keeps the `#section` on screen in the address bar while the reader scrolls,
+so a copied link, a reload and the EN / BG button open the same place.
 Never deploy a `TRAINER=1` build. The Notes button is only rendered when `TRAINER=1`.
 
 Back after a `#link` on the same page returns to the link, not to the top of its
