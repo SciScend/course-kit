@@ -64,6 +64,10 @@ from `@sciscend/course-kit/theme/keepPlace.js`): the pages must be built from th
 same Markdown, so that they have the same headings and blocks in the same order.
 Never deploy a `TRAINER=1` build. The Notes button is only rendered when `TRAINER=1`.
 
+Back after a `#link` on the same page returns to the link, not to the top of its
+section (`theme/backKeepsPlace.js`; VitePress itself keeps the place only for links to
+other pages).
+
 ### Notes files (re-injection)
 
 With `TRAINER=1`, for each page `lectures/NN-topic.md` the kit reads

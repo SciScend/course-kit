@@ -3,6 +3,7 @@ import { h } from 'vue'
 import RunCode from './components/RunCode.vue'
 import ModeToggles from './components/ModeToggles.vue'
 import ResizeHandles from './components/ResizeHandles.vue'
+import { setupBackKeepsPlace } from './backKeepsPlace.js'
 import './custom.css'
 
 export default {
@@ -15,5 +16,6 @@ export default {
   },
   enhanceApp({ app }) {
     app.component('RunCode', RunCode)
+    setupBackKeepsPlace()    // in the browser only; nothing on the server
   }
 }
